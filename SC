@@ -1,6 +1,0 @@
-#!/bin/bash
-
-source /etc/SBo_Port_script/SW_pkg.conf
-source /usr/lib/SBo_Port_script/SW_pkg_functions
-
-configure_port ${1}
