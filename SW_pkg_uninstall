@@ -1,0 +1,18 @@
+#!/bin/sh
+
+SBOPORT_ARG1=$1
+#SBOPORT_ARG1=skrooge
+
+source /etc/SBo_Port_script/SW_pkg.conf
+source /usr/lib/SBo_Port_script/SW_pkg_functions
+
+arch_detect
+ARCH=$SBOPORT_ARCH
+
+is_script_arg_passed $SBOPORT_ARG1
+
+SBOPOR_PORT_DIR=$SBOPORT_PORT/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME
+SBOPOR_UNINST_FILE=$SBOPOR_PORT_DIR/$SBOPORT_PRGNAME.$SBOPORT_UNINST
+source $SBOPOR_UNINST_FILE
+
+echo "Finish."

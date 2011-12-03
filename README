@@ -1,0 +1,62 @@
+SBo_Port_script - коллекция сценариев предназначенная для создания
+портов программ, находящихся на http://www.slackbuilds.org/
+
+автор: Николай Матвеев 
+e-mail: mnasoft@gmail.com
+site: http://www.mnasoft.mksat.net/
+
+
+
+1 Установка SBo_Port_script
+
+1.1 Распакуйте SBo_Port_script-0.5-noarch-mnas.txz:
+tar -xvvf SBo_Port_script-0.5-noarch-mnas.txz
+
+1.2 Войдите под в систему под записью  root:
+su - 
+
+1.3 Перейдите в каталог, содержащий SBo_Port_script-0.5-noarch-mnas:
+cd /path_before/SBo_Port_script-0.5-noarch-mnas/
+
+1.4 Выполните от имени root сценарий установки install_SW_script:
+./install_SW_script
+
+1.5 Проверьте добавился-ли в файл /root/.profile следующая строка:
+export PATH=$PATH:/usr/lib/SBo_Port_script
+
+
+
+2 Удаление SBo_Port_script
+
+2.1 Войдите под в систему под записью  root:
+su -
+
+2.2 Выполните сценарий удалений пакета
+/usr/lib/SBo_Port_script/uninstall_SW_script
+
+
+2.3 Удалите из файла /root/.profile следующую строку:
+export PATH=$PATH:/usr/lib/SBo_Port_script
+
+
+
+3 Описание файлов, входящих в коллекцию сценариев
+
+README				- настоящий фал, содержащий краткие инструкции;
+install_SW_script		- содержит установочный сценарий; 
+uninstall_SW_script		- содержит сценарий удаления коллекции сценариев SBo_Port_script;
+SW_pkg.conf			- конфигурационный файл;
+SW_rsync			- сценарий зеккалирования на локальный компьютер содержимого коллекции Slackbuild-ов с сайта slackbuilds.org;
+SW_pkg_config			- содержит сценарий для создания и открытия файлов составляющих, создаваемый/редактируемый порт;
+SW_pkg_config_wo_editing	- содержит сценарий для создания файлов составляющих, создаваемый порт;
+SW_pkg_install			- содержит сценарий для установки на компьютер порта имеющегося в коллекции;
+SW_pkg_uninstall		- содержит сценарий для удаления порта и его зависимостей;
+SW_create_SBo_Port_arcs		- создание архивов: 
+				  1 Коллекции сценариев SBo_Port_script;
+				  2 Коллекции портов SBo_Port_port;
+				  3 Коллекции пакетов SBo_Port_pkg;
+				  Коллекции с исходными текстами программ SBo-Port_source;
+ 
+SW_pkg_functions		- содержит вспомогательные подпрограмы;
+SW_pkg_functions_01 		- содержит вспомогательные подпрограмы;
+port_rename			- утилита для переименования портов.

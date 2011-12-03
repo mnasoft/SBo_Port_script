@@ -1,0 +1,876 @@
+#!/bin/bash
+
+exec_all_installed_pkg_to_log()
+{
+  echo "File: SW_pkg_functions ; remove_all_installed_log_pkg()." 
+
+  echo "./$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME INSTALLED" >> $SBOPORT_LOG/SBOPORT-$SBOPORT_RELEASE-$SBOPORT_ARCH.log
+
+  echo_long_cr
+}
+
+remove_all_installed_log_pkg()
+{
+  echo "File: SW_pkg_functions ; remove_all_installed_log_pkg()." 
+
+  arch_detect
+  for arg in `grep INSTALLED $SBOPORT_LOG/SBOPORT-$SBOPORT_RELEASE-$SBOPORT_ARCH.log | sed -e 's/INSTALLED//' -e 's/ //'`
+    do basename $arg
+      removepkg $arg
+    done
+
+  echo_long_cr
+}
+
+edit_port_files()
+{
+#  kate $OWNER_PRT $OWNER_Pre $OWNER_Post $OWNER_Inst $OWNER_UnInst &
+  kate $PRT_FILES &
+}
+
+cnf_prt()
+{
+  local Prm
+  Prm=${1}
+
+  SBOPORT_PRGNAME=`basename ${Prm}`
+  SBOPORT_GROUPNAME=`dirname ${Prm} | xargs basename`
+
+  prepare_directory
+
+  if [ -z ${SBOPORT_PRGNAME} ]
+    then
+      echo "Arg #2 not exist!!!"
+      echo "Usage:"
+      echo "SW.namatv academic/wxMaxima"
+      echo "SW.namatv academic/wxMaxima/"
+      echo "SW.namatv /academic/wxMaxima/"
+      exit 1
+  fi
+  
+  if [ ${SBOPORT_GROUPNAME} = "." ]
+    then
+      echo "Arg #1 not exist!!!"
+      echo "Usage:"
+      echo "SW.namatv academic/wxMaxima"
+      echo "SW.namatv academic/wxMaxima/"
+      echo "SW.namatv /academic/wxMaxima/"
+      exit 1
+  fi
+
+  if [ -e $SBOPORT_PORT/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/ ]
+    then
+      echo "$SBOPORT_PORT/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/ - path exist. OK."
+    else
+      echo "$SBOPORT_PORT/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/ - path not exist!!!"
+      echo "Exitting."
+      exit 1
+  fi
+
+  local OWNER_PATH
+
+  local OWNER_PRT
+  local OWNER_Pre
+  local OWNER_Post
+  local OWNER_Inst
+
+  OWNER_PATH=$SBOPORT_PORT/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME/
+
+  OWNER_PRT=$OWNER_PATH/$SBOPORT_PRGNAME.$SBOPORT_PRT
+  OWNER_Pre=$OWNER_PATH/$SBOPORT_PRGNAME.$SBOPORT_PRE
+  OWNER_Post=$OWNER_PATH/$SBOPORT_PRGNAME.$SBOPORT_POST
+  OWNER_Inst=$OWNER_PATH/$SBOPORT_PRGNAME.$SBOPORT_INST
+  OWNER_UnInst=$OWNER_PATH/$SBOPORT_PRGNAME.$SBOPORT_UNINST
+
+  mkdir -p $OWNER_PATH
+  
+  if [ -e ${OWNER_PRT} ]
+    then
+      echo "${OWNER_PRT} - file is already exist. Not genetating."
+    else
+      echo "#/bin/bash" >${OWNER_PRT}
+      echo "SBOPORT_PRGNAME=\"${SBOPORT_PRGNAME}\"" >>${OWNER_PRT}
+      echo "SBOPORT_GROUPNAME=\"${SBOPORT_GROUPNAME}\"" >>${OWNER_PRT}
+  fi
+  
+  if [ -e ${OWNER_Pre} ]
+    then
+      echo "${OWNER_Pre} - file is already exist. Not genetating."
+    else
+      echo "#/bin/bash" > ${OWNER_Pre}
+      echo "#VERSION=\" \"" >> ${OWNER_Pre}
+      echo "#DOWNLOAD=\" \"" >> ${OWNER_Pre}
+      echo "#DOWNLOAD_x86_64=\"\"" >> ${OWNER_Pre}
+      echo "#MD5SUM=\"\"" >> ${OWNER_Pre}
+      echo "#MD5SUM_x86_64=\"\"" >> ${OWNER_Pre}
+      echo "#Зависимости. Выполняется перед выполнением SlackBuild из slackbuilds.org" >> ${OWNER_Pre}
+      echo "#( SW something_i )" >> ${OWNER_Pre}
+      echo "#( SW_PKG path_i pkg_name_i )" >> ${OWNER_Pre}
+      echo "#( SW_PKG /extra/jdk-6/ jdk )" >> ${OWNER_Pre}
+      echo "#SBOPORT_ARCH=\"i386\"" >> ${OWNER_Pre}
+
+  fi
+  
+  if [ -e ${OWNER_Post} ]
+    then
+      echo "${OWNER_Post} - file is already exist. Not genetating."
+    else
+      echo "#/bin/bash" >${OWNER_Post}
+      echo "#Выполняется после выполнения SlackBuild из slackbuilds.org" >> ${OWNER_Post}
+      echo "#Но перед установкой собранного пакета." >> ${OWNER_Post}
+  fi
+  
+  if [ -e ${OWNER_Inst} ]
+    then
+      echo "${OWNER_Inst} - file is already exist. Not genetating."
+    else
+      echo "#/bin/bash" > ${OWNER_Inst}
+      echo "#Выполняется после установки пакета из slackbuilds.org" >> ${OWNER_Inst}
+  fi
+
+  if [ -e ${OWNER_UnInst} ]
+    then
+      echo "${OWNER_UnInst} - file is already exist. Not genetating."
+    else
+      echo "#/bin/bash" > ${OWNER_UnInst}
+      echo "#Выполняется при удалении пакета при помощи команды SR" >> ${OWNER_UnInst}
+      echo "#Должен содержать строки с командами удаления Зависимостей находящихся в pre - файле." >> ${OWNER_UnInst}
+      echo "#( SR something_i )" >> ${OWNER_UnInst}
+      echo "" >> ${OWNER_UnInst}
+      echo "removepkg ${SBOPORT_PRGNAME}" >> ${OWNER_UnInst}
+  fi
+  PRT_FILES="$OWNER_PRT $OWNER_Pre $OWNER_Post $OWNER_Inst $OWNER_UnInst"
+}
+
+configure_port()
+{
+  cnf_prt ${1}
+  edit_port_files
+}
+
+configure_port_whithout_editing()
+{
+  cnf_prt ${1}
+}
+
+prepare_directory() 
+{
+  arch_detect
+
+  for arg in $SBOPORT_SUBDIRS
+  do
+    mkdir -p $SBOPORT_MIRR/$SBOPORT_RELEASE/$arg
+    mkdir -p $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$arg
+    mkdir -p $SBOPORT_WORK/$SBOPORT_RELEASE/$SBOPORT_ARCH/$arg
+    mkdir -p $SBOPORT_PORT/$SBOPORT_RELEASE/$SBOPORT_ARCH/$arg
+  done
+}
+
+echo_long() 
+{
+     echo '----------------------------------------------------------------------------------------------------'
+}
+
+echo_long_cr() 
+{
+    echo_long
+    echo
+}
+
+arch_detect() 
+{
+  if [ -z $SBOPORT_ARCH ]
+  then 
+    local UNAME_VAR
+    SBOPORT_ARCH=`uname -m`
+  fi
+}
+
+is_script_arg_passed() 
+{
+  local FIND_SCRIPT
+  if [ -z $SBOPORT_ARG1 ]
+    then
+      echo_long
+      echo "File:SW_pkg_functions function: is_script_arg_passed()." 
+      echo "The are no args #1"
+      echo 
+      echo "Usage:"
+      echo "SW port_name"
+      echo 
+      echo "Exitting."
+      show_sbo_variables
+      echo_long_cr
+      exit 1
+    else
+      SBOPORT_PRGNAME=$SBOPORT_ARG1
+      cd $SBOPORT_PORT/$SBOPORT_RELEASE/$SBOPORT_ARCH/
+      FIND_SCRIPT=`find . -name $SBOPORT_PRGNAME.$SBOPORT_PRT`
+      if [ -z $FIND_SCRIPT ]
+        then 
+          echo_long
+          echo "File:SW_pkg_functions function: is_script_arg_passed()." 
+          echo "Cood not find port $SBOPORT_PRGNAME."
+          echo "Exitting."
+          show_sbo_variables
+          echo_long_cr
+          exit 1
+      fi
+      SBOPORT_GROUPNAME=`echo $FIND_SCRIPT | xargs dirname|xargs dirname|xargs basename`
+      SBOPORT_SCRIPT=$SBOPORT_PORT/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME/$SBOPORT_PRGNAME.$SBOPORT_PRT
+      if [ ! -e $SBOPORT_SCRIPT ]
+        then 
+          echo_long
+          echo "File:SW_pkg_functions function: is_script_arg_passed()." 
+          echo "Port file $SBOPORT_SCRIPT not exist."
+          echo "Exitting."
+          show_sbo_variables
+          echo_long_cr
+          exit 1
+       fi
+  fi
+}
+
+sboport_script_load() 
+{
+  if [ ! -e ${SBOPORT_SCRIPT} ]
+    then
+      echo_long
+      echo "File: SW_pkg_functions function: sboport_script_load()." 
+      echo "${SBOPORT_SCRIPT} - script  file not exist. ERROR."
+      echo "Exiting."
+      show_sbo_variables
+      echo_long_cr
+      exit 1
+  fi
+  source ${SBOPORT_SCRIPT}
+}
+
+is_sboport_prgname_variable_exist()
+{
+  if [ -z  $SBOPORT_PRGNAME ]
+    then
+      echo_long
+      echo 'File: SW_pkg_functions ; function: is_sboport_prgname_variable_exist().' 
+      echo "SBOPORT_PRGNAME-variable not exist. ERROR."
+      echo "Exiting..."
+      show_sbo_variables
+      echo_long_cr
+      exit 1
+  fi
+}
+
+is_package_subfolder_variable_exist()
+{
+  if [ -z  $SBOPORT_GROUPNAME ] 
+    then
+      echo_long
+      echo 'File: SW_pkg_functions ; function: is_package_subfolder_variable_exist().'
+      echo "SBOPORT_GROUPNAME-variable not exist. ERROR."
+      echo "EXITING..."
+      show_sbo_variables 
+      echo_long_cr
+      exit 1
+  fi
+}
+
+is_slackbuild_archiv_exist() 
+{
+  if [ ! -e  $SBOPOR_MIRR_DIR/$SBOPORT_PRGNAME.tar.gz  ]
+    then
+      cd $SBOPOR_MIRR_DIR/
+      wget $SBOPORT_SITE/$SBOPORT_RELEASE/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME.tar.gz
+  fi
+}
+
+is_slackbuild_archiv_key_file_exist() 
+{
+  if [ ! -e  $SBOPOR_MIRR_DIR/$SBOPORT_PRGNAME.tar.gz.asc  ]
+    then
+      cd $SBOPOR_MIRR_DIR/
+      wget $SBOPORT_SITE/$SBOPORT_RELEASE/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME.tar.gz.asc
+  fi
+}
+
+is_patch_for_slackbuild_located_in_tar_gz_exist() 
+{
+  if [ -e  $SBOPOR_PORT_DIR/$SBOPORT_PRGNAME.tar.gz ]
+    then
+      cd $SBOPOR_WORK_DIR/
+      tar -xvf $SBOPOR_PORT_DIR/$SBOPORT_PRGNAME.tar.gz
+  fi
+}
+
+exec_pre_file() 
+{
+  if [ -e $SBOPOR_PRE_FILE ]
+    then
+      source $SBOPOR_PRE_FILE
+  fi
+}
+
+download_apropriated_sources()
+{
+  if [ $SBOPORT_ARCH = "x86_64" ]
+    then
+      url_file_names_test=( ${DOWNLOAD_x86_64} )
+      if [ ${#url_file_names_test[*]} = 0 ]
+        then
+          SOURCE_DOWNLOAD_FILE_NAME=${DOWNLOAD}
+          SOURCE_DOWNLOAD_FILE_MD5SUM=${MD5SUM}
+        else
+          if [ ${url_file_names_test[0]} = "UNSUPPORTED" ]
+            then
+              echo_long
+              echo 'File: SW_pkg_functions ; function: download_apropriated_sources().'
+              echo 'DOWNLOAD_x86_64 ARCH - not supported.'
+              echo 'Exitting.'
+	      show_sbo_variables
+              echo_long_cr
+              exit 1
+            else
+              SOURCE_DOWNLOAD_FILE_NAME=${DOWNLOAD_x86_64}
+              SOURCE_DOWNLOAD_FILE_MD5SUM=${MD5SUM_x86_64}
+          fi
+      fi
+    else
+      SOURCE_DOWNLOAD_FILE_NAME=${DOWNLOAD}
+      SOURCE_DOWNLOAD_FILE_MD5SUM=${MD5SUM}
+  fi
+}
+
+is_package_was_already_installed()
+{
+  if [ -e /var/log/packages/$SBOPORT_PKG_FILE_NAME ]
+    then
+      VAR_LOG_PACKAGE_NAME=`ls /var/log/packages/$SBOPORT_PKG_FILE_NAME`
+      echo_long
+      echo 'File: SW_pkg_functions ; function: is_package_was_already_installed().'
+      echo "${VAR_LOG_PACKAGE_NAME} - Package is already installed. OK."
+      echo 'Exitting.'
+      echo_long_cr
+      exit 0
+  fi
+}
+
+is_package_was_already_build() 
+{
+  echo 'File: SW_pkg_functions ; function: is_package_was_already_build().'
+  echo "Is package was already Build..."
+
+  if [ -e $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PKG_FILE_NAME ]
+    then
+      PACKAGE_OWNER=`ls $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PKG_FILE_NAME`
+      echo_long
+      echo 'File: SW_pkg_functions ; function: is_package_was_already_build().'
+      echo "$PACKAGE_OWNER - Package is already builded. OK."
+      installpkg $PACKAGE_OWNER
+      exec_all_installed_pkg_to_log
+      exec_inst_file
+      echo 'Exitting.'
+      echo_long_cr
+      exit 0
+  fi
+}
+
+download_sources_and_check_md5sum() 
+{
+  for (( i=0; i < url_file_names_length ; i++ ))
+  do
+    url_file_nm=`basename ${url_file_names[$i]}`
+    if [ ! -e $SBOPOR_SOURCE_DIR/$url_file_nm ]
+      then
+        cd $SBOPOR_SOURCE_DIR
+        wget -c ${url_file_names[$i]}
+    fi
+
+    MD5SUM_CHECK=`md5sum $SBOPOR_SOURCE_DIR/$url_file_nm`
+    set -- $MD5SUM_CHECK
+    MD5SUM_CHECK_SUMM=$1
+    MD5SUM_CHECK_FILE=$2
+
+    if [ ${MD5SUM_CHECK_SUMM} != ${url_file_names_md5sums[$i]} ]
+      then
+        echo_long
+        echo 'File: SW_pkg_functions ; function: download_sources_and_check_md5sum().'
+        echo "${MD5SUM_CHECK_FILE} - Have wrong md5sum."
+#        echo "Deleting..."
+#        su ${OWNER} -c "rm ${MD5SUM_CHECK_FILE}"
+        echo "Exiting."
+	show_sbo_variables
+        echo_long_cr
+        exit 1
+    fi
+
+    cp $SBOPOR_SOURCE_DIR/$url_file_nm $SBOPOR_WORK_DIR/$SBOPORT_PRGNAME/
+  done
+}
+
+ exec_slackbuild() 
+{
+  echo_long
+  echo 'Starting Building...'
+  sleep 1
+  echo_long
+  show_sbo_variables
+  echo_long_cr
+  sleep 4
+
+  prepare_directory
+  
+  cd $SBOPOR_WORK_DIR/$SBOPORT_PRGNAME/
+  source ./$SBOPORT_PRGNAME.$SBOPORT_SUFFIX
+
+  echo_long_cr
+}
+
+exec_post_file() 
+{
+  echo 'File: SW_pkg_functions ; function: exec_post_file().'
+  echo 'Is post-file exist?'
+
+  if [ -e $SBOPOR_POST_FILE ]
+    then
+      source $SBOPOR_POST_FILE
+      echo "source $SBOPOR_POST_FILE - Loaded. OK."
+    else
+      echo "source $SBOPOR_POST_FILE - Not Found."
+    fi
+
+  echo_long_cr
+}
+
+install_builded_package()
+{
+  installpkg ${PACKAGE_OWNER}
+  exec_all_installed_pkg_to_log
+}
+
+exec_inst_file() 
+{
+  if [ -e $SBOPOR_INST_FILE ]
+    then
+      source $SBOPOR_INST_FILE
+  fi
+}
+
+# SW_PKG path pkg_name
+# Выполняет установку пакета из репозитория extra Slackware.
+# path - относительный путь к пакету. 
+# pkg_name - имя пакета
+# Пример использвоания:
+# ( SW_PKG /extra/kde3-compat/ qt3 )
+SW_PKG () 
+{
+  if [ ! -e /var/log/packages/$2* ]
+    then
+       if [ -e $SBOPORT_SALCK_IMG$1$2*.t?z ]
+         then 
+           installpkg $SBOPORT_SALCK_IMG$1$2*.t?z
+         else
+           echo_long
+           echo 'File: SW_pkg_functions ; function: SW_PKG().'
+           echo "Error: package $SBOPORT_SALCK_IMG$1$2*.t?z - not exist."
+           echo_long_cr
+           exit 1
+       fi
+  fi
+}
+
+exec_dot_parent ()
+{
+  if [ -e /tmp/SW_parent ]
+    then
+      source /tmp/SW_parent
+  fi
+
+  if [ -n $SW_parent ]
+    then
+      echo "\"$SW_parent\" -> \"$SBOPORT_PRGNAME\" ;" >> /tmp/SW_graf.dot
+  fi
+  echo "SW_parent=\"$SBOPORT_PRGNAME\"" > /tmp/SW_parent
+}
+
+exec_dot_prarent_post ()
+{
+  echo 'File: SW_pkg_functions ; function: exec_dot_prarent_post().'
+  if [ -z $SW_parent ]
+    then
+      rm -f  /tmp/SW_parent
+
+      sort -u -o /tmp/SW_graf.dot /tmp/SW_graf.dot
+
+      echo "digraph D" > /tmp/$SBOPORT_PRGNAME.dot
+      echo "{" >> /tmp/$SBOPORT_PRGNAME.dot
+      echo 'rankdir=LR;' >> /tmp/$SBOPORT_PRGNAME.dot
+      echo "\"$SBOPORT_PRGNAME\" ;" >> /tmp/$SBOPORT_PRGNAME.dot
+      
+      cat /tmp/SW_graf.dot >> /tmp/$SBOPORT_PRGNAME.dot
+
+      echo '}' >> /tmp/$SBOPORT_PRGNAME.dot
+
+      cp /tmp/$SBOPORT_PRGNAME.dot $SBOPORT_PORT/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME/
+      
+
+      if [ -x /usr/bin/dot ]
+        then
+          dot -O -T pdf /tmp/$SBOPORT_PRGNAME.dot
+          cp /tmp/$SBOPORT_PRGNAME.dot.pdf $SBOPORT_PORT/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME/
+          rm -f /tmp/$SBOPORT_PRGNAME.dot.pdf
+      fi
+
+      rm -f /tmp/SW_graf.dot /tmp/$SBOPORT_PRGNAME.dot.pdf /tmp/$SBOPORT_PRGNAME.dot
+
+    else
+      echo "else:SW_parent=$SW_parent"
+      echo "SW_parent=\"$SW_parent\"" > /tmp/SW_parent
+  fi
+  echo_long_cr
+}
+
+temp_test()
+{
+  if [ -x /usr/bin/dot ]
+    then
+      echo exec_dot_parent
+  fi
+}
+
+# Выполяет загрузку конфигурационного файла.
+source_sw_pkg_conf ()
+{
+    source /etc/SBo_Port_script/SW_pkg.conf
+}
+
+source_sw_pkg_functions ()
+{
+    source /usr/lib/SBo_Port_script/SW_pkg_functions
+}
+
+#Выводит переменные SBo_Port.
+show_sbo_variables ()
+{
+  echo "SBOPORT_USER=$SBOPORT_USER"
+  echo "SBOPORT_VERSION=$SBOPORT_VERSION"
+  echo "SBOPORT_RELEASE=$SBOPORT_RELEASE"
+  echo "SBOPORT_SITE=$SBOPORT_SITE"
+  echo "SBOPORT_MIRR=$SBOPORT_MIRR"
+  echo "SBOPORT_PKG=$SBOPORT_PKG"
+  echo "SBOPORT_PORT=$SBOPORT_PORT"
+  echo "SBOPORT_SOURCE=$SBOPORT_SOURCE"
+  echo "SBOPORT_WORK=$SBOPORT_WORK"
+  echo "SBOPORT_SALCK_IMG=$SBOPORT_SALCK_IMG"
+  echo "SBOPORT_LOG=$SBOPORT_LOG"
+  echo "SBOPORT_SUFFIX=$SBOPORT_SUFFIX"
+  echo "SBOPORT_PRT=$SBOPORT_PRT"
+  echo "SBOPORT_PRE=$SBOPORT_PRE"
+  echo "SBOPORT_POST=$SBOPORT_POST"
+  echo "SBOPORT_INST=$SBOPORT_INST"
+  echo "SBOPORT_UNINST=$SBOPORT_UNINST"
+  echo "SBOPORT_SUBDIRS=$SBOPORT_SUBDIRS"
+  echo "SBOPORT_PKG_FILE_NAME=$SBOPORT_PKG_FILE_NAME"
+  echo "SBOPORT_ARCH=$SBOPORT_ARCH"
+  echo "SBOPORT_SCRIPT=$SBOPORT_SCRIPT"
+  echo "SBOPORT_PRGNAME=$SBOPORT_PRGNAME"
+  echo "SBOPORT_GROUPNAME=$SBOPORT_GROUPNAME"
+}
+
+
+# Обновление локального зеркала SlackBuild-ов с сайта ftp://ftp.slackbuilds.org для текущей версии Slackware.
+refresh_slackbuild_mirror_release()
+{
+  source_sw_pkg_conf
+  cd "${SBOPORT_MIRR}/.."
+  wget -m -np -l 2 "${SBOPORT_SITE}/${SBOPORT_RELEASE}/"
+}
+
+# Обновление локального зеркала SlackBuild-ов с сайта ftp://ftp.slackbuilds.org для всех версий Slackware.
+refresh_slackbuild_mirror_all_releases()
+{
+    source_sw_pkg_conf
+    cd "${SBOPORT_MIRR}/.."
+    wget -m -np -l 3 "${SBOPORT_SITE}/"
+}
+
+
+find_asc_files()
+{
+    source_sw_pkg_conf
+    cd "${SBOPORT_MIRR}/${SBOPORT_RELEASE}/"
+    find . -name "*.asc" | sed -e 's/.asc//' >"${SBOPORT_MIRR}/${SBOPORT_RELEASE}/pkg.log"
+}
+
+# Итераторная функция для добавления задания на загрузку файлов исходных текстов.
+download_sources()
+{
+#   LINE='./audio/tagtool.tar.gz'
+
+    local PATH_NAME
+    local TAR_GZ_NAME
+    local DIR_NAME
+    local DOWNLOAD
+
+    PATH_NAME=`dirname $LINE`
+    TAR_GZ_NAME=`basename $LINE`
+    DIR_NAME=`echo $TAR_GZ_NAME | sed -e 's/.tar.gz//'`
+
+    cd "${SBOPORT_MIRR}/${SBOPORT_RELEASE}/${PATH_NAME}/"
+    tar xvf $TAR_GZ_NAME
+    cd $DIR_NAME
+    source $DIR_NAME.info
+    echo "cd ${SBOPORT_MIRR}/${SBOPORT_RELEASE}/${PATH_NAME}/" >> /tmp/SW_wget_task.log
+    echo "wget -c  $DOWNLOAD" >> /tmp/SW_wget_task.log
+}
+
+read_lines_from_file()
+{
+  source_sw_pkg_conf
+  while read LINE; 
+  do 
+    echo $LINE
+    download_sources 
+  done < "${SBOPORT_MIRR}/${SBOPORT_RELEASE}/pkg.log"
+}
+
+# Создание архива исходных текстов пакета из каталога /usr/lib/SBo_Port_script/
+# При вызове следует указывать номер версии например:
+# create_src_arc 0.4
+create_src_arc()
+{
+  source_sw_pkg_conf
+  rm /tmp/SBo_Port_script-$1-noarch-mnas.bz2
+  rm -r -f /tmp/SBo_Port_script-$1-noarch-mnas/
+  mkdir -p /tmp/SBo_Port_script-$1-noarch-mnas/
+  cp /usr/lib/SBo_Port_script/* /tmp/SBo_Port_script-$1-noarch-mnas/
+  rm /tmp/SBo_Port_script-$1-noarch-mnas/SC \
+     /tmp/SBo_Port_script-$1-noarch-mnas/SCW \
+     /tmp/SBo_Port_script-$1-noarch-mnas/SW \
+     /tmp/SBo_Port_script-$1-noarch-mnas/SR \
+     /tmp/SBo_Port_script-$1-noarch-mnas/*~
+  cd /tmp/
+  tar -cvvJf /tmp/SBo_Port_script-$1-noarch-mnas.txz ./SBo_Port_script-$1-noarch-mnas/*
+  rm -r -f /tmp/SBo_Port_script-$1-noarch-mnas
+}
+
+# Создание архива исходных текстов программ из каталога /home/ftp/SBo-Port/source/
+# При вызове следует указывать номер версии например:
+# create_SBo_Port_source_arc 0.4
+create_SBo_Port_source_arc()
+{
+  source_sw_pkg_conf
+
+  local fname
+  fname=/tmp/SBo-Port_source-$SBOPORT_RELEASE-$1-noarch-mnas.tar
+
+  rm -f $fname
+
+  cd $SBOPORT_SOURCE/
+  tar -cvvf $fname ./$SBOPORT_RELEASE/
+}
+
+# Создание архива с собранными пакетами из каталога /home/ftp/SBo-Port/pkg/
+# При вызове следует указывать номер версии например:
+# create_SBo_Port_pkg_arc 0.4
+create_SBo_Port_pkg_arc()
+{
+  source_sw_pkg_conf
+  source_sw_pkg_functions
+  arch_detect
+
+  local fname
+  fname=/tmp/SBo_Port_pkg-$SBOPORT_RELEASE-$1-$SBOPORT_ARCH-mnas.tar
+
+  rm -f $fname
+
+  cd $SBOPORT_PKG/
+  if [ -z "$ARCH" ]; then
+    case "$( uname -m )" in
+      i?86) tar -cvvf $fname ./$SBOPORT_RELEASE/i?86/ ;;
+      x86_64) tar -cvvf $fname ./$SBOPORT_RELEASE/x86_64/  ;;
+    esac
+  fi
+}
+
+# Создание архива с коллекцией портов из каталога /home/ftp/SBo-Port/port/
+# При вызове следует указывать номер версии например:
+# create_SBo_Port_port_arc 0.4
+create_SBo_Port_port_arc()
+{
+  source_sw_pkg_conf
+
+  local fname
+  fname=/tmp/SBo_Port_port-$SBOPORT_RELEASE-$1-noarch-mnas.txz
+
+  rm -f $fname
+
+  cd $SBOPORT_PORT/
+  tar -cvvJf $fname ./$SBOPORT_RELEASE/
+}
+
+create_SBo_Port_ftp_slackbuilds_org()
+{
+  source_sw_pkg_conf
+
+  local fname
+  fname=/tmp/SBo-Port_ftp_slackbuilds_org-$SBOPORT_RELEASE-$1-noarch-mnas.txz
+
+  rm -f $fname 
+
+  cd $SBOPORT_MIRR/
+  tar -cvvJf $fname ./$SBOPORT_RELEASE/
+}
+
+# Создание архивов:
+# 1 Коллекции сценариев SBo_Port_script;
+# 2 Коллекции портов SBo_Port_port;
+# 3 Коллекции пакетов SBo_Port_pkg;
+# 4 Коллекции с исходными текстами программ SBo-Port_source;
+# 5 Зеркало с ftp.slackbuilds.org.
+
+create_SBo_Port_arcs()
+{
+  create_src_arc $1
+  create_SBo_Port_port_arc $1
+  create_SBo_Port_pkg_arc $1
+#  create_SBo_Port_source_arc $1
+  create_SBo_Port_ftp_slackbuilds_org $1
+}
+
+create_SBo_Port_source_download_list()
+{
+  refresh_slackbuild_mirror_release
+  find_asc_files
+  read_lines_from_file
+}
+
+create_SBo_Port_xdot_files()
+{
+  rm -f /tmp/SW_graf.dot  /tmp/SW_parent
+  lst=`cat /tmp/SBOPORT*.log | sed -e "s/INSTALLED//" | sort -u`
+  for packet in $lst
+  do
+    rez=`basename $packet`
+    echo $rez
+    SW $rez
+  done
+}
+
+# Производит переименование устаревших переменных в файлах портов.
+# PRGNAM -> SBOPORT_PRGNAME
+# PACKAGE_SUBFOLDER -> SBOPORT_GROUPNAME
+port_convert()
+{
+  source /etc/SBo_Port_script/SW_pkg.conf
+  source /usr/lib/SBo_Port_script/SW_pkg_functions
+  local prt_file
+  local pfl
+  prt_file=`find $SBOPORT_PORT/$SBOPORT_RELEASE/ -name "*.port"`
+  for pfl in $prt_file
+  do
+  sed -e "s/^PRGNAM=/SBOPORT_PRGNAME=/" $pfl |
+  sed -e "s/^PACKAGE_SUBFOLDER=/SBOPORT_GROUPNAME=/" >/tmp/port.port
+  rm -f $pfl
+  cp /tmp/port.port $pfl
+  done
+  rm -f /tmp/port.port
+}
+
+create_dir_stucture()
+{
+  mkdir -p $SBOPORT_PKG
+  mkdir -p $SBOPORT_PORT
+  mkdir -p $SBOPORT_SOURCE
+  mkdir -p $SBOPORT_MIRR
+}
+
+
+read_lines_from_slackbuilds_txt()
+{
+   local NAME
+   local LOCATION
+   local FILES
+   local VERSION
+   local DOWNLOAD
+   local DOWNLOAD_x86_64
+   local MD5SUM
+   local MD5SUM_x86_64
+   local SHORT_DESCRIPTION
+
+#  source_sw_pkg_conf
+
+  arch_detect
+
+  while read LINE; 
+  do 
+#    echo $LINE
+    download_all_sources
+  done < "$SBOPORT_MIRR/$SBOPORT_RELEASE/SLACKBUILDS.TXT"
+}
+
+
+download_all_sources ()
+{
+local pos pos_val_start len_val val key
+len=`expr length "$LINE"`
+
+pos=`expr index "$LINE" ":"`
+pos_val_start=`expr $pos + 2`
+len_val=`expr $len - $pos - 1`
+
+val=`expr substr "$LINE" $pos_val_start $len_val`
+key=`expr substr "$LINE" 1 $pos`
+
+case "$key" in
+  "SLACKBUILD NAME:" )
+    NAME=$val
+  ;;
+
+  "SLACKBUILD LOCATION:" )
+    LOCATION=$val
+  ;;
+
+  "SLACKBUILD FILES:" )  
+    FILES=$val
+  ;;
+
+  "SLACKBUILD VERSION:" )
+    VERSION=$val 
+  ;;
+
+  "SLACKBUILD DOWNLOAD:" ) 
+    DOWNLOAD=$val
+  ;;
+
+  "SLACKBUILD DOWNLOAD_x86_64:" ) 
+    DOWNLOAD_x86_64=$val 
+  ;;
+
+  "SLACKBUILD MD5SUM:" ) 
+    MD5SUM=$val
+  ;;
+
+  "SLACKBUILD MD5SUM_x86_64:" ) 
+    MD5SUM_x86_64=$val
+  ;;
+
+  "SLACKBUILD SHORT DESCRIPTION:" ) 
+    SHORT_DESCRIPTION=$val
+  ;;
+
+  "" ) echo "Загружаем..."
+    mkdir -p $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION
+    foo_check_10
+    cd $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION
+    echo "$SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION"
+    wget -T 10 -t 3 -c $SOURCE_DOWNLOAD_FILE_NAME >/dev/null
+
+esac
+}
+
+is_patch_for_slackbuild_exist() 
+{
+  if [ -e  $SBOPOR_PORT_DIR/$SBOPORT_PRGNAME.patch ]
+    then
+      patch $SBOPOR_WORK_DIR/$SBOPORT_PRGNAME/$SBOPORT_PRGNAME.$SBOPORT_SUFFIX $SBOPOR_PORT_DIR/$SBOPORT_PRGNAME.patch
+  fi
+}

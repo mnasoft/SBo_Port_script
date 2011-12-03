@@ -1,0 +1,87 @@
+#!/bin/bash
+
+source /etc/SBo_Port_script/SW_pkg.conf
+source /usr/lib/SBo_Port_script/SW_pkg_functions
+
+change_port_format_03_to_04(){
+#  cd /home/ftp/13.0/
+  cd /media/disk-1/namatv/ftp/ftp.slackbuilds.org/12.2
+
+  DIR_DEST="/home/ftp/12.2"
+
+# cd /home/ftp/13.0/
+# DIR_DEST="/home/ftp/SBo-Port/port/13.0/x86_64"
+
+  PRE=`find . -name "*.namatv.pre"`
+
+  for arg in $PRE
+  do
+    BASE=`basename $arg`
+    DIR=`dirname  $arg | xargs basename`
+    echo $DIR
+    DIR_NEW=`echo $BASE | sed -e 's/.namatv.pre//'`
+    NAME_NEW=`echo $BASE | sed -e 's/.namatv.pre/.pre/'`
+    mkdir -p $DIR_DEST/$DIR/$DIR_NEW/
+    cp $arg $DIR_DEST/$DIR/$DIR_NEW/$NAME_NEW
+    rm $arg
+  done
+  
+  POST=`find . -name "*.namatv.post"`
+  
+  for arg in $POST
+  do
+    BASE=`basename $arg`
+    DIR=`dirname  $arg | xargs basename`
+    echo $DIR
+    DIR_NEW=`echo $BASE | sed -e 's/.namatv.post//'`
+    NAME_NEW=`echo $BASE | sed -e 's/.namatv.post/.post/'`
+    mkdir -p $DIR_DEST/$DIR/$DIR_NEW/
+    cp $arg $DIR_DEST/$DIR/$DIR_NEW/$NAME_NEW
+    rm $arg
+    done
+
+  INST=`find . -name "*.namatv.inst"`
+  
+  for arg in $INST
+  do
+    BASE=`basename $arg`
+    DIR=`dirname  $arg | xargs basename`
+    echo $DIR
+    DIR_NEW=`echo $BASE | sed -e 's/.namatv.inst//'`
+    NAME_NEW=`echo $BASE | sed -e 's/.namatv.inst/.inst/'`
+    mkdir -p $DIR_DEST/$DIR/$DIR_NEW/
+    cp $arg $DIR_DEST/$DIR/$DIR_NEW/$NAME_NEW
+    rm $arg
+  done
+  
+  PORT=`find . -name "*.namatv.SlackBuild"`
+  
+  for arg in $PORT
+  do
+    BASE=`basename $arg`
+    DIR=`dirname  $arg | xargs basename`
+    echo $DIR
+    DIR_NEW=`echo $BASE | sed -e 's/.namatv.SlackBuild//'`
+    NAME_NEW=`echo $BASE | sed -e 's/.namatv.SlackBuild/.port/'`
+    mkdir -p $DIR_DEST/$DIR/$DIR_NEW/
+    cp $arg $DIR_DEST/$DIR/$DIR_NEW/$NAME_NEW
+    rm $arg
+  done
+}
+
+move_sourses(){
+
+  cd /home/ftp 
+
+  for arg in $PORT
+  do
+    BASE=`basename $arg`
+    DIR=`dirname  $arg | xargs basename`
+    echo $DIR
+    DIR_NEW=`echo $BASE | sed -e 's/.namatv.SlackBuild//'`
+    NAME_NEW=`echo $BASE | sed -e 's/.namatv.SlackBuild/.port/'`
+    mkdir -p $DIR_DEST/$DIR/$DIR_NEW/
+    cp $arg $DIR_DEST/$DIR/$DIR_NEW/$NAME_NEW
+  done
+
+}

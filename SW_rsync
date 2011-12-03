@@ -1,0 +1,6 @@
+#!/bin/bash
+
+source /etc/SBo_Port_script/SW_pkg.conf
+source /usr/lib/SBo_Port_script/SW_pkg_functions
+ 
+rsync -avz --del rsync://slackbuilds.org/slackbuilds $SBOPORT_MIRR

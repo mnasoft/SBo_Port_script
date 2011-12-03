@@ -1,0 +1,17 @@
+#!/bin/bash
+PKG="SBo_Port_script"
+DIR=`dirname $0`
+cd $DIR
+
+mkdir -p /etc/${PKG}/
+mkdir -p /usr/lib/${PKG}/
+cp * /usr/lib/${PKG}/
+ln -s /usr/lib/${PKG}/SW_pkg.conf /etc/${PKG}/
+
+cd /usr/lib/${PKG}
+ln -s SW_pkg_install SW
+ln -s SW_pkg_uninstall SR
+ln -s SW_pkg_config SC
+ln -s SW_pkg_config_wo_editing SCW
+echo "export PATH=\$PATH:/usr/lib/${PKG}" >> ~/.profile
+kate ~/.profile

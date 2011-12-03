@@ -1,0 +1,14 @@
+#!/bin/bash
+
+source /etc/SBo_Port_script/SW_pkg.conf
+source /usr/lib/SBo_Port_script/SW_pkg_functions
+
+if test -z "$1"
+then
+  echo "Аргументы командной строки отсутствуют. Используемый номер версии $SBOPORT_VERSION"
+  create_SBo_Port_arcs $SBOPORT_VERSION
+else
+  echo "Первый аргумент командной строки: Используемый номер версии $1"
+  create_SBo_Port_arcs $1
+fi
+

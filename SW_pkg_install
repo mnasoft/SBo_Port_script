@@ -1,0 +1,96 @@
+#!/bin/sh
+
+SBOPORT_ARG1=$1
+#SBOPORT_ARG1=supertux
+
+source /etc/SBo_Port_script/SW_pkg.conf
+source /usr/lib/SBo_Port_script/SW_pkg_functions
+
+arch_detect
+ARCH=$SBOPORT_ARCH
+
+
+is_script_arg_passed
+
+sboport_script_load
+
+is_sboport_prgname_variable_exist
+
+is_package_subfolder_variable_exist
+
+
+SBOPOR_MIRR_DIR=$SBOPORT_MIRR/$SBOPORT_RELEASE/$SBOPORT_GROUPNAME
+
+SBOPOR_PORT_DIR=$SBOPORT_PORT/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME
+
+SBOPOR_WORK_DIR=$SBOPORT_WORK/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME
+mkdir -p $SBOPOR_WORK_DIR
+
+SBOPOR_SOURCE_DIR=$SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME
+mkdir -p $SBOPOR_SOURCE_DIR
+
+SBOPORT_PKG_DIR=$SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/
+mkdir -p $SBOPORT_PKG_DIR
+
+SBOPOR_PRE_FILE=$SBOPOR_PORT_DIR/$SBOPORT_PRGNAME.$SBOPORT_PRE
+SBOPOR_POST_FILE=$SBOPOR_PORT_DIR/$SBOPORT_PRGNAME.$SBOPORT_POST
+SBOPOR_INST_FILE=$SBOPOR_PORT_DIR/$SBOPORT_PRGNAME.$SBOPORT_INST
+SBOPOR_UNINST_FILE=$SBOPOR_PORT_DIR/$SBOPORT_PRGNAME.$SBOPORT_UNINST
+
+is_slackbuild_archiv_exist
+
+is_slackbuild_archiv_key_file_exist
+
+cd $SBOPOR_WORK_DIR/
+rm -rf $SBOPORT_PRGNAME/
+tar -xvf $SBOPOR_MIRR_DIR/$SBOPORT_PRGNAME.tar.gz
+
+is_patch_for_slackbuild_located_in_tar_gz_exist
+
+is_patch_for_slackbuild_exist
+
+source $SBOPOR_WORK_DIR/$SBOPORT_PRGNAME/$SBOPORT_PRGNAME.info
+
+exec_dot_parent
+
+exec_pre_file
+
+exec_dot_prarent_post
+
+download_apropriated_sources
+
+SBOPORT_PKG_FILE_NAME=${PRGNAM}-${VERSION//-/_}*_SBo*
+
+is_package_was_already_installed
+
+is_package_was_already_build
+
+
+#Загрузка - проверка исходных файлов. Начало.
+url_file_names=( ${SOURCE_DOWNLOAD_FILE_NAME} )                    #
+url_file_names_md5sums=( ${SOURCE_DOWNLOAD_FILE_MD5SUM} )          #
+url_file_names_length=${#url_file_names[*]}                        #Длина массива имен.
+
+download_sources_and_check_md5sum
+
+cd $SBOPOR_WORK_DIR/$SBOPORT_PRGNAME/
+
+exec_slackbuild
+
+exec_post_file
+
+PACKAGE_TMP=`ls /tmp/$SBOPORT_PKG_FILE_NAME`
+
+cp $PACKAGE_TMP $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/
+
+rm $PACKAGE_TMP
+
+PACKAGE_OWNER=`ls $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PKG_FILE_NAME`
+
+install_builded_package
+
+exec_inst_file
+
+echo_long
+echo "Installation of $SBOPORT_GROUPNAME/$SBOPORT_PKG_FILE_NAME finished."
+echo_long_cr

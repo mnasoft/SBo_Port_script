@@ -1,0 +1,7 @@
+#!/bin/bash
+
+source /etc/SBo_Port_script/SW_pkg.conf
+source /usr/lib/SBo_Port_script/SW_pkg_functions
+
+create_dir_stucture
+

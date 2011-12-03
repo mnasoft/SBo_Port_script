@@ -1,0 +1,6 @@
+#!/bin/bash
+PKG="SBo_Port_script"
+
+rm -r /usr/lib/${PKG}/
+rm -r /etc/${PKG}/
+kate ~/.profile & #rm ~/.profile 

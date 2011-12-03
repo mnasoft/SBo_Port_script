@@ -1,0 +1,37 @@
+#/bin/bash
+
+SW ()
+{
+  echo  "\"$port_nm\" ->  \"$1\" ;" >> /tmp/SBo_port.dot
+}
+
+do_func ()
+{
+  pre_file=$1
+  echo $pre_file
+  base_nm=`basename $pre_file`
+  port_nm=`echo $base_nm | sed -e "s/.pre//"`
+  grep SW $pre_file > /tmp/grep_rez
+  source /tmp/grep_rez
+}
+
+directory=/home/disks/sda7/ftp/SBo-Port/port/13.1/i686
+cd $directory
+
+fnames=`find . -name "*.pre"`
+
+
+echo "digraph D" > /tmp/SBo_port.dot
+echo "{" >> /tmp/SBo_port.dot
+echo 'rankdir=LR;' >> /tmp/SBo_port.dot
+
+for arg in $fnames
+ do
+  do_func $directory/$arg
+ done
+
+echo "}" >> /tmp/SBo_port.dot
+
+rm /tmp/grep_rez
+
+dot -O -T pdf /tmp/SBo_port.dot
