@@ -1,4 +1,13 @@
 #!/bin/bash
+#Выполняет создание файлов для нового порта.
+#Например:
+#SW_pkg_config_wo_editing games/supertux
+#SW_pkg_config_wo_editing games/supertux/
+#или с использованием аббревиатуры:
+#SCW games/supertux
+#SCW games/supertux/
+#SCW http://slackbuilds.org/repository/13.37/games/supertux/
+#SCW http://slackbuilds.org/repository/13.37/games/supertux
 
 source /etc/SBo_Port_script/SW_pkg.conf
 source /usr/lib/SBo_Port_script/SW_pkg_functions

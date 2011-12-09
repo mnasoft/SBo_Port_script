@@ -810,7 +810,7 @@ read_lines_from_slackbuilds_txt()
 
 download_all_sources ()
 {
-local pos pos_val_start len_val val key
+local pos pos_val_start len_val val key src
 len=`expr length "$LINE"`
 
 pos=`expr index "$LINE" ":"`
@@ -857,13 +857,31 @@ case "$key" in
     SHORT_DESCRIPTION=$val
   ;;
 
-  "" ) echo "Загружаем..."
-    mkdir -p $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION
-    foo_check_10
-    cd $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION
-    echo "$SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION"
-    wget -T 10 -t 3 -c $SOURCE_DOWNLOAD_FILE_NAME >/dev/null
+  "" ) 
+  echo "Загружаем..."
+  echo "NAME=$NAME"
+  echo "LOCATION=$LOCATION"  
+  echo "FILES=$FILES"
+  echo "VERSION=$VERSION"
+  echo "DOWNLOAD=$DOWNLOAD"
+  echo "DOWNLOAD_x86_64=$DOWNLOAD_x86_64"
+  echo "MD5SUM=$MD5SUM"
+  echo "MD5SUM_x86_64=$MD5SUM_x86_64"
+  echo "SHORT_DESCRIPTION=$SHORT_DESCRIPTION"
+  
+  echo "mkdir -p $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION"
 
+  mkdir -p $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION
+  cd $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION
+  for src in $DOWNLOAD
+  do
+    (wget -T 10 -t 3 -c $src &)
+  done
+  
+  for src in $DOWNLOAD_x86_64
+  do
+    (wget -T 10 -t 3 -c $src &)
+  done
 esac
 }
 

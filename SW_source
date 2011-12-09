@@ -1,7 +1,6 @@
 #!/bin/bash
-
+#Загрузка исходныхого кода всех программ с сайта slackbuilds.org
 source /etc/SBo_Port_script/SW_pkg.conf
 source /usr/lib/SBo_Port_script/SW_pkg_functions
-source /usr/lib/SBo_Port_script/SW_pkg_functions_01
 
 read_lines_from_slackbuilds_txt

@@ -1,4 +1,9 @@
 #!/bin/sh
+#Выполняет сборку и установку порта.
+#Например:
+#SW_pkg_install supertux
+#или с использованием аббревиатуры:
+#SW supertux
 
 SBOPORT_ARG1=$1
 #SBOPORT_ARG1=supertux

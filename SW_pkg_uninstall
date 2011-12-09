@@ -1,4 +1,9 @@
 #!/bin/sh
+#Выполняет удаление порта из системы.
+#Например:
+#SW_pkg_uninstall supertux
+#или с использованием аббревиатуры:
+#SR supertux
 
 SBOPORT_ARG1=$1
 #SBOPORT_ARG1=skrooge

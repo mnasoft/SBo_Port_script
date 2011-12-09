@@ -1,4 +1,9 @@
 #!/bin/bash
+# Создает архивы для распространения SBo_Port_script
+# 1 Коллекции сценариев SBo_Port_script;
+# 2 Коллекции портов SBo_Port_port;
+# 3 Коллекции пакетов SBo_Port_pkg;
+# 4 Коллекции с исходными текстами программ SBo-Port_source.
 
 source /etc/SBo_Port_script/SW_pkg.conf
 source /usr/lib/SBo_Port_script/SW_pkg_functions
