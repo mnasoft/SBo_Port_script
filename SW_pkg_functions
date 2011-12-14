@@ -364,9 +364,9 @@ is_package_was_already_build()
       echo_long
       echo 'File: SW_pkg_functions ; function: is_package_was_already_build().'
       echo "$PACKAGE_OWNER - Package is already builded. OK."
-      installpkg $PACKAGE_OWNER
-      exec_all_installed_pkg_to_log
-      exec_inst_file
+
+      install_builded_package
+
       echo 'Exitting.'
       echo_long_cr
       exit 0
@@ -426,9 +426,6 @@ download_sources_and_check_md5sum()
 
 exec_post_file() 
 {
-  echo 'File: SW_pkg_functions ; function: exec_post_file().'
-  echo 'Is post-file exist?'
-
   if [ -e $SBOPOR_POST_FILE ]
     then
       source $SBOPOR_POST_FILE
@@ -442,8 +439,12 @@ exec_post_file()
 
 install_builded_package()
 {
+  exec_post_file
+
   installpkg ${PACKAGE_OWNER}
   exec_all_installed_pkg_to_log
+
+  exec_inst_file
 }
 
 exec_inst_file() 
