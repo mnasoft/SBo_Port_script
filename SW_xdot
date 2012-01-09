@@ -2,6 +2,5 @@
 
 source /etc/SBo_Port_script/SW_pkg.conf
 source /usr/lib/SBo_Port_script/SW_pkg_functions
-source /usr/lib/SBo_Port_script/SW_pkg_functions_01
 
 create_SBo_Port_xdot_files

@@ -485,10 +485,13 @@ exec_dot_parent ()
       source /tmp/SW_parent
   fi
 
-  if [ -n $SW_parent ]
+  if [ -z $SW_parent ]
     then
+      continue 
+    else
       echo "\"$SW_parent\" -> \"$SBOPORT_PRGNAME\" ;" >> /tmp/SW_graf.dot
   fi
+
   echo "SW_parent=\"$SBOPORT_PRGNAME\"" > /tmp/SW_parent
 }
 
