@@ -2,11 +2,9 @@
 
 exec_all_installed_pkg_to_log()
 {
-  echo "File: SW_pkg_functions ; remove_all_installed_log_pkg()." 
-
+#  echo "File: SW_pkg_functions ; remove_all_installed_log_pkg()." 
   echo "./$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME INSTALLED" >> $SBOPORT_LOG/SBOPORT-$SBOPORT_RELEASE-$SBOPORT_ARCH.log
-
-  echo_long_cr
+#  echo_long_cr
 }
 
 remove_all_installed_log_pkg()
@@ -137,7 +135,7 @@ cnf_prt()
       echo "#Должен содержать строки с командами удаления Зависимостей находящихся в pre - файле." >> ${OWNER_UnInst}
       echo "#( SR something_i )" >> ${OWNER_UnInst}
       echo "" >> ${OWNER_UnInst}
-      echo "removepkg ${SBOPORT_PRGNAME}" >> ${OWNER_UnInst}
+      echo "rm_pkg_if_exist ${SBOPORT_PRGNAME}" >> ${OWNER_UnInst}
   fi
   PRT_FILES="$OWNER_PRT $OWNER_Pre $OWNER_Post $OWNER_Inst $OWNER_UnInst"
 }
@@ -344,31 +342,28 @@ is_package_was_already_installed()
   if [ -e /var/log/packages/$SBOPORT_PKG_FILE_NAME ]
     then
       VAR_LOG_PACKAGE_NAME=`ls /var/log/packages/$SBOPORT_PKG_FILE_NAME`
-      echo_long
-      echo 'File: SW_pkg_functions ; function: is_package_was_already_installed().'
-      echo "${VAR_LOG_PACKAGE_NAME} - Package is already installed. OK."
-      echo 'Exitting.'
-      echo_long_cr
+#      echo_long
+#      echo 'File: SW_pkg_functions ; function: is_package_was_already_installed().'
+#      echo "${VAR_LOG_PACKAGE_NAME} - Package is already installed. OK."
+#      echo 'Exitting.'
+#      echo_long_cr
       exit 0
   fi
 }
 
 is_package_was_already_build() 
 {
-  echo 'File: SW_pkg_functions ; function: is_package_was_already_build().'
-  echo "Is package was already Build..."
-
+#  echo_long_cr
+#  echo 'File: SW_pkg_functions ; function: is_package_was_already_build().'
   if [ -e $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PKG_FILE_NAME ]
     then
       PACKAGE_OWNER=`ls $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PKG_FILE_NAME`
-      echo_long
-      echo 'File: SW_pkg_functions ; function: is_package_was_already_build().'
-      echo "$PACKAGE_OWNER - Package is already builded. OK."
-
+#      echo_long
+#      echo 'File: SW_pkg_functions ; function: is_package_was_already_build().'
+#      echo "$PACKAGE_OWNER - Package is already builded. OK."
       install_builded_package
-
-      echo 'Exitting.'
-      echo_long_cr
+#      echo 'Exitting.'
+#      echo_long_cr
       exit 0
   fi
 }
@@ -429,12 +424,12 @@ exec_post_file()
   if [ -e $SBOPOR_POST_FILE ]
     then
       source $SBOPOR_POST_FILE
-      echo "source $SBOPOR_POST_FILE - Loaded. OK."
-    else
-      echo "source $SBOPOR_POST_FILE - Not Found."
+#      echo "source $SBOPOR_POST_FILE - Loaded. OK."
+#    else
+#      echo "source $SBOPOR_POST_FILE - Not Found."
     fi
 
-  echo_long_cr
+#  echo_long_cr
 }
 
 install_builded_package()
@@ -497,7 +492,8 @@ exec_dot_parent ()
 
 exec_dot_prarent_post ()
 {
-  echo 'File: SW_pkg_functions ; function: exec_dot_prarent_post().'
+#  echo_long_cr
+#  echo 'File: SW_pkg_functions ; function: exec_dot_prarent_post().'
   if [ -z $SW_parent ]
     then
       rm -f  /tmp/SW_parent
@@ -526,10 +522,10 @@ exec_dot_prarent_post ()
       rm -f /tmp/SW_graf.dot /tmp/$SBOPORT_PRGNAME.dot.pdf /tmp/$SBOPORT_PRGNAME.dot
 
     else
-      echo "else:SW_parent=$SW_parent"
+#      echo "else:SW_parent=$SW_parent"
       echo "SW_parent=\"$SW_parent\"" > /tmp/SW_parent
   fi
-  echo_long_cr
+#  echo_long_cr
 }
 
 temp_test()
@@ -894,5 +890,18 @@ is_patch_for_slackbuild_exist()
   if [ -e  $SBOPOR_PORT_DIR/$SBOPORT_PRGNAME.patch ]
     then
       patch $SBOPOR_WORK_DIR/$SBOPORT_PRGNAME/$SBOPORT_PRGNAME.$SBOPORT_SUFFIX $SBOPOR_PORT_DIR/$SBOPORT_PRGNAME.patch
+  fi
+}
+
+#Выполняет деинсталляцию пакета, если он установлен.
+rm_pkg_if_exist()
+{
+  if [ -e /var/log/packages/${1}*SBo ]
+    then 
+#      echo "pkg_exist /var/log/packages/${1}*SBo"
+      removepkg ${1}
+      echo "${1} Uninstalled" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.UNINSTALL.LOG
+#    else
+#      echo "pkg_not_exist /var/log/packages/${1}*SBo"
   fi
 }

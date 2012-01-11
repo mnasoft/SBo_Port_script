@@ -48,7 +48,7 @@ is_slackbuild_archiv_key_file_exist
 
 cd $SBOPOR_WORK_DIR/
 rm -rf $SBOPORT_PRGNAME/
-tar -xvf $SBOPOR_MIRR_DIR/$SBOPORT_PRGNAME.tar.gz
+tar -xf $SBOPOR_MIRR_DIR/$SBOPORT_PRGNAME.tar.gz
 
 is_patch_for_slackbuild_located_in_tar_gz_exist
 
