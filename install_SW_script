@@ -22,4 +22,3 @@ if [ ${REZ_GREP} == 0 ]
     echo -n "export PATH=\$PATH:/usr/lib/${PKG}" >> ~/.profile
     echo " # ${PKG} setup line. Please do not correct or erase this line." >> ~/.profile
 fi
-

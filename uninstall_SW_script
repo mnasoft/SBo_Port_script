@@ -8,5 +8,3 @@ sed "/export PATH=\$PATH:\/usr\/lib\/${PKG} # ${PKG} setup line. Please do not c
 rm ~/.profile
 cp ~/.profile.tmp ~/.profile
 rm ~/.profile.tmp
-
- 
