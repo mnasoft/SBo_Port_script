@@ -13,5 +13,13 @@ ln -s SW_pkg_install SW
 ln -s SW_pkg_uninstall SR
 ln -s SW_pkg_config SC
 ln -s SW_pkg_config_wo_editing SCW
-echo "export PATH=\$PATH:/usr/lib/${PKG}" >> ~/.profile
-kate ~/.profile
+
+SEARCH_STRING='export PATH=$PATH:/usr/lib/'$PKG
+REZ_GREP=`grep -c "${SEARCH_STRING}" ~/.profile`
+if [ ${REZ_GREP} == 0 ]
+  then
+    echo >> ~/.profile
+    echo -n "export PATH=\$PATH:/usr/lib/${PKG}" >> ~/.profile
+    echo " # ${PKG} setup line. Please do not correct or erase this line." >> ~/.profile
+fi
+

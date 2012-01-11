@@ -3,4 +3,10 @@ PKG="SBo_Port_script"
 
 rm -r /usr/lib/${PKG}/
 rm -r /etc/${PKG}/
-kate ~/.profile & #rm ~/.profile 
+
+sed "/export PATH=\$PATH:\/usr\/lib\/${PKG} # ${PKG} setup line. Please do not correct or erase this line./d" ~/.profile > ~/.profile.tmp
+rm ~/.profile
+cp ~/.profile.tmp ~/.profile
+rm ~/.profile.tmp
+
+ 
