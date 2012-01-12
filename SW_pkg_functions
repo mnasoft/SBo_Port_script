@@ -1,23 +1,55 @@
 #!/bin/bash
 
-exec_all_installed_pkg_to_log()
+move_pkg_to_repo()
 {
-#  echo "File: SW_pkg_functions ; remove_all_installed_log_pkg()." 
-  echo "./$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME INSTALLED" >> $SBOPORT_LOG/SBOPORT-$SBOPORT_RELEASE-$SBOPORT_ARCH.log
+
+if [ -e /tmp/$SBOPORT_PKG_FILE_NAME ]
+  then
+    PACKAGE_TMP=`ls /tmp/$SBOPORT_PKG_FILE_NAME`
+    cp $PACKAGE_TMP $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/
+    rm $PACKAGE_TMP
+    PACKAGE_OWNER=`ls $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PKG_FILE_NAME`
+  else
+    PACKAGE_OWNER=""
+    cr_echo_long
+    echo "Can not find package in temperare dir:"
+    echo "/tmp/$SBOPORT_PKG_FILE_NAME"
+    echo_long_cr
+fi
+
+
+}
+
+exec_pakage_log()
+{
+#  echo "File: SW_pkg_functions ; exec_pakage_log()." 
+if [ -e /var/log/packages/$SBOPORT_PKG_FILE_NAME ]
+    then
+      echo_long
+      echo "Installation of well finished."
+      echo "$SBOPORT_GROUPNAME/$SBOPORT_PKG_FILE_NAME"
+      echo_long_cr
+      echo "./$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME INSTALLED" >> $SBOPORT_LOG/SBOPORT-$SBOPORT_RELEASE-$SBOPORT_ARCH.log
+    else
+      echo_long
+      echo "Installation error."
+      echo "./$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME"
+      echo_long_cr
+      echo "./$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PRGNAME ERROR" >> $SBOPORT_LOG/SBOPORT-$SBOPORT_RELEASE-$SBOPORT_ARCH.ERROR.log
+      exit 1
+  fi
 #  echo_long_cr
 }
 
 remove_all_installed_log_pkg()
 {
-  echo "File: SW_pkg_functions ; remove_all_installed_log_pkg()." 
-
+#  echo "File: SW_pkg_functions ; remove_all_installed_log_pkg()." 
   arch_detect
   for arg in `grep INSTALLED $SBOPORT_LOG/SBOPORT-$SBOPORT_RELEASE-$SBOPORT_ARCH.log | sed -e 's/INSTALLED//' -e 's/ //'`
     do basename $arg
       removepkg $arg
     done
-
-  echo_long_cr
+#  echo_long_cr
 }
 
 edit_port_files()
@@ -166,13 +198,19 @@ prepare_directory()
 
 echo_long() 
 {
-     echo '----------------------------------------------------------------------------------------------------'
+     echo '********************************************************************************'
 }
 
 echo_long_cr() 
 {
     echo_long
     echo
+}
+
+cr_echo_long() 
+{
+    echo
+    echo_long
 }
 
 arch_detect() 
@@ -403,19 +441,19 @@ download_sources_and_check_md5sum()
 
  exec_slackbuild() 
 {
+  cr_echo_long
+  show_sbo_variables
   echo_long
   echo 'Starting Building...'
-  sleep 1
-  echo_long
-  show_sbo_variables
   echo_long_cr
-  sleep 4
+  sleep 5
 
   prepare_directory
-  
   cd $SBOPOR_WORK_DIR/$SBOPORT_PRGNAME/
-  source ./$SBOPORT_PRGNAME.$SBOPORT_SUFFIX
+  ( source ./$SBOPORT_PRGNAME.$SBOPORT_SUFFIX )
 
+  cr_echo_long
+  echo 'Stop Building.'
   echo_long_cr
 }
 
@@ -428,7 +466,6 @@ exec_post_file()
 #    else
 #      echo "source $SBOPOR_POST_FILE - Not Found."
     fi
-
 #  echo_long_cr
 }
 
@@ -436,8 +473,16 @@ install_builded_package()
 {
   exec_post_file
 
-  installpkg ${PACKAGE_OWNER}
-  exec_all_installed_pkg_to_log
+  if [ -z $PACKAGE_OWNER ]
+    then
+      cr_echo_long
+      echo "Can not find package."
+      echo "$SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PKG_FILE_NAME"
+      echo_long_cr
+    else
+      installpkg ${PACKAGE_OWNER}
+  fi
+  exec_pakage_log
 
   exec_inst_file
 }
@@ -896,6 +941,10 @@ is_patch_for_slackbuild_exist()
 #Выполняет деинсталляцию пакета, если он установлен.
 rm_pkg_if_exist()
 {
+# echo_long_cr
+# echo "File: SW_pkg_functions ; rm_pkg_if_exist()." 
+# show_sbo_variables
+
   if [ -e /var/log/packages/${1}*SBo ]
     then 
 #      echo "pkg_exist /var/log/packages/${1}*SBo"
@@ -904,4 +953,5 @@ rm_pkg_if_exist()
 #    else
 #      echo "pkg_not_exist /var/log/packages/${1}*SBo"
   fi
+# echo_long_cr
 }
