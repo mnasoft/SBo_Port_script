@@ -1,23 +1,62 @@
 #!/bin/bash
 
+add_line_to_file()
+{
+  local SOME_LINE
+  local SOME_FILE
+  local REZ_GREP
+
+  SOME_LINE=${1}
+  SOME_FILE=${2}
+
+  REZ_GREP=`grep -c "${SOME_LINE}" $SOME_FILE`
+
+  if [ ${REZ_GREP} == 0 ]
+    then
+      echo "${SOME_LINE}" >> ${SOME_FILE}
+      cr_echo_long
+      echo "${PACKAGE_OWNER}" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.SETUP.LOG
+      echo_long_cr
+      echo "Line: '${SOME_LINE}' added to file: ${SOME_FILE}" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.SETUP.LOG
+  fi
+}
+
+remove_line_from_file()
+{
+  local SOME_LINE
+  local SOME_FILE
+  local REZ_GREP
+  local TMP_FILE
+
+  SOME_LINE=${1}
+  SOME_FILE=${2}
+  TMP_FILE=`tempfile -s .tmp`
+
+  sed "/${SOME_LINE}/d" ${SOME_FILE} > ${TMP_FILE}
+  rm ${SOME_FILE}
+  cp ${TMP_FILE} ${SOME_FILE}
+  rm ${TMP_FILE}
+  cr_echo_long
+  echo "Line: '${SOME_LINE}' deleted from file: ${SOME_FILE}"
+  echo_long_cr
+  echo "Line: '${SOME_LINE}' deleted from file: ${SOME_FILE}" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.SETUP.LOG
+}
+
 move_pkg_to_repo()
 {
-
-if [ -e /tmp/$SBOPORT_PKG_FILE_NAME ]
-  then
-    PACKAGE_TMP=`ls /tmp/$SBOPORT_PKG_FILE_NAME`
-    cp $PACKAGE_TMP $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/
-    rm $PACKAGE_TMP
-    PACKAGE_OWNER=`ls $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PKG_FILE_NAME`
-  else
-    PACKAGE_OWNER=""
-    cr_echo_long
-    echo "Can not find package in temperare dir:"
-    echo "/tmp/$SBOPORT_PKG_FILE_NAME"
-    echo_long_cr
-fi
-
-
+  if [ -e /tmp/$SBOPORT_PKG_FILE_NAME ]
+    then
+      PACKAGE_TMP=`ls /tmp/$SBOPORT_PKG_FILE_NAME`
+      cp $PACKAGE_TMP $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/
+      rm $PACKAGE_TMP
+      PACKAGE_OWNER=`ls $SBOPORT_PKG/$SBOPORT_RELEASE/$SBOPORT_ARCH/$SBOPORT_GROUPNAME/$SBOPORT_PKG_FILE_NAME`
+    else
+      PACKAGE_OWNER=""
+      cr_echo_long
+      echo "Can not find package in temperare dir:"
+      echo "/tmp/$SBOPORT_PKG_FILE_NAME"
+      echo_long_cr
+  fi
 }
 
 exec_pakage_log()
@@ -133,6 +172,8 @@ cnf_prt()
       echo "#DOWNLOAD_x86_64=\"\"" >> ${OWNER_Pre}
       echo "#MD5SUM=\"\"" >> ${OWNER_Pre}
       echo "#MD5SUM_x86_64=\"\"" >> ${OWNER_Pre}
+      echo "#В этом файле могут присутствовать инструкции по внесению строк в файл. Например:" >> ${OWNER_Pre}
+      echo "#add_line_to_file 'KERNEL==\"raw1394\", GROUP=\"disk\" # SBoPort 13.37 > Libraries > libffado' /lib/udev/rules.d/65-permissions.rules" >> ${OWNER_Pre}
       echo "#Зависимости. Выполняется перед выполнением SlackBuild из slackbuilds.org" >> ${OWNER_Pre}
       echo "#( SW something_i )" >> ${OWNER_Pre}
       echo "#( SW_PKG path_i pkg_name_i )" >> ${OWNER_Pre}
@@ -166,6 +207,8 @@ cnf_prt()
       echo "#Выполняется при удалении пакета при помощи команды SR" >> ${OWNER_UnInst}
       echo "#Должен содержать строки с командами удаления Зависимостей находящихся в pre - файле." >> ${OWNER_UnInst}
       echo "#( SR something_i )" >> ${OWNER_UnInst}
+      echo "#В этом файле могут присутствовать инструкции по удалению (внесенных ранее) строк из файла. Например:" >> ${OWNER_UnInst}
+      echo "#remove_line_from_file 'KERNEL==\"raw1394\", GROUP=\"disk\" # SBoPort 13.37 > Libraries > libffado' /lib/udev/rules.d/65-permissions.rules"  >> ${OWNER_UnInst}
       echo "" >> ${OWNER_UnInst}
       echo "rm_pkg_if_exist ${SBOPORT_PRGNAME}" >> ${OWNER_UnInst}
   fi
