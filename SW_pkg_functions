@@ -15,9 +15,9 @@ add_line_to_file()
     then
       echo "${SOME_LINE}" >> ${SOME_FILE}
       cr_echo_long
-      echo "${PACKAGE_OWNER}" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.SETUP.LOG
+      echo "${PACKAGE_OWNER}" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.SETUP.log
       echo_long_cr
-      echo "Line: '${SOME_LINE}' added to file: ${SOME_FILE}" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.SETUP.LOG
+      echo "Line: '${SOME_LINE}' added to file: ${SOME_FILE}" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.SETUP.log
   fi
 }
 
@@ -39,7 +39,7 @@ remove_line_from_file()
   cr_echo_long
   echo "Line: '${SOME_LINE}' deleted from file: ${SOME_FILE}"
   echo_long_cr
-  echo "Line: '${SOME_LINE}' deleted from file: ${SOME_FILE}" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.SETUP.LOG
+  echo "Line: '${SOME_LINE}' deleted from file: ${SOME_FILE}" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.SETUP.log
 }
 
 move_pkg_to_repo()
@@ -450,12 +450,13 @@ download_sources_and_check_md5sum()
 
     if [ ${MD5SUM_CHECK_SUMM} != ${url_file_names_md5sums[$i]} ]
       then
-        echo_long
+        cr_echo_long
         echo 'File: SW_pkg_functions ; function: download_sources_and_check_md5sum().'
         echo "${MD5SUM_CHECK_FILE} - Have wrong md5sum."
 #        echo "Deleting..."
 #        su ${OWNER} -c "rm ${MD5SUM_CHECK_FILE}"
         echo "Exiting."
+	echo_long
 	show_sbo_variables
         echo_long_cr
         exit 1
@@ -563,14 +564,16 @@ exec_dot_prarent_post ()
     then
       rm -f  /tmp/SW_parent
 
-      sort -u -o /tmp/SW_graf.dot /tmp/SW_graf.dot
-
       echo "digraph D" > /tmp/$SBOPORT_PRGNAME.dot
       echo "{" >> /tmp/$SBOPORT_PRGNAME.dot
       echo 'rankdir=LR;' >> /tmp/$SBOPORT_PRGNAME.dot
       echo "\"$SBOPORT_PRGNAME\" ;" >> /tmp/$SBOPORT_PRGNAME.dot
-      
-      cat /tmp/SW_graf.dot >> /tmp/$SBOPORT_PRGNAME.dot
+
+      if [ -e /tmp/SW_graf.dot ]
+	then
+	  sort -u -o /tmp/SW_graf.dot /tmp/SW_graf.dot
+	  cat /tmp/SW_graf.dot >> /tmp/$SBOPORT_PRGNAME.dot
+      fi
 
       echo '}' >> /tmp/$SBOPORT_PRGNAME.dot
 
@@ -953,7 +956,7 @@ rm_pkg_if_exist()
       if [ -e /var/log/packages/$pkg ]
       then 
 	removepkg $pkg
-	echo "${pkg} Uninstalled" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.UNINSTALL.LOG
+	echo "${pkg} Uninstalled" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.UNINSTALL.log
       fi
     fi 
   done 

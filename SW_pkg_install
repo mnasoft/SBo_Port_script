@@ -14,7 +14,6 @@ source /usr/lib/SBo_Port_script/SW_pkg_functions
 arch_detect
 ARCH=$SBOPORT_ARCH
 
-
 is_script_arg_passed
 
 sboport_script_load
@@ -69,7 +68,6 @@ SBOPORT_PKG_FILE_NAME=${PRGNAM}-${VERSION//-/_}*_SBo*
 is_package_was_already_installed
 
 is_package_was_already_build
-
 
 #Загрузка - проверка исходных файлов. Начало.
 url_file_names=( ${SOURCE_DOWNLOAD_FILE_NAME} )                    #
