@@ -898,79 +898,51 @@ read_lines_from_slackbuilds_txt()
 
 download_all_sources ()
 {
-local pos pos_val_start len_val val key src
-len=`expr length "$LINE"`
-
-pos=`expr index "$LINE" ":"`
-pos_val_start=`expr $pos + 2`
-len_val=`expr $len - $pos - 1`
-
-val=`expr substr "$LINE" $pos_val_start $len_val`
-key=`expr substr "$LINE" 1 $pos`
-
-case "$key" in
-  "SLACKBUILD NAME:" )
-    NAME=$val
-  ;;
-
-  "SLACKBUILD LOCATION:" )
-    LOCATION=$val
-  ;;
-
-  "SLACKBUILD FILES:" )  
-    FILES=$val
-  ;;
-
-  "SLACKBUILD VERSION:" )
-    VERSION=$val 
-  ;;
-
-  "SLACKBUILD DOWNLOAD:" ) 
-    DOWNLOAD=$val
-  ;;
-
-  "SLACKBUILD DOWNLOAD_x86_64:" ) 
-    DOWNLOAD_x86_64=$val 
-  ;;
-
-  "SLACKBUILD MD5SUM:" ) 
-    MD5SUM=$val
-  ;;
-
-  "SLACKBUILD MD5SUM_x86_64:" ) 
-    MD5SUM_x86_64=$val
-  ;;
-
-  "SLACKBUILD SHORT DESCRIPTION:" ) 
-    SHORT_DESCRIPTION=$val
-  ;;
-
-  "" ) 
-  echo "Загружаем..."
-  echo "NAME=$NAME"
-  echo "LOCATION=$LOCATION"  
-  echo "FILES=$FILES"
-  echo "VERSION=$VERSION"
-  echo "DOWNLOAD=$DOWNLOAD"
-  echo "DOWNLOAD_x86_64=$DOWNLOAD_x86_64"
-  echo "MD5SUM=$MD5SUM"
-  echo "MD5SUM_x86_64=$MD5SUM_x86_64"
-  echo "SHORT_DESCRIPTION=$SHORT_DESCRIPTION"
+  local pos pos_val_start len_val val key src
+  len=`expr length "$LINE"`
   
-  echo "mkdir -p $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION"
-
-  mkdir -p $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION
-  cd $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION
-  for src in $DOWNLOAD
-  do
-    (wget -T 10 -t 3 -c $src &)
-  done
+  pos=`expr index "$LINE" ":"`
+  pos_val_start=`expr $pos + 2`
+  len_val=`expr $len - $pos - 1`
   
-  for src in $DOWNLOAD_x86_64
-  do
-    (wget -T 10 -t 3 -c $src &)
-  done
-esac
+  val=`expr substr "$LINE" $pos_val_start $len_val`
+  key=`expr substr "$LINE" 1 $pos`
+  
+  case "$key" in
+    "SLACKBUILD NAME:" )     NAME=$val ;;
+    "SLACKBUILD LOCATION:" ) LOCATION=$val ;;
+    "SLACKBUILD FILES:" )    FILES=$val ;;
+    "SLACKBUILD VERSION:" )  VERSION=$val ;;
+    "SLACKBUILD DOWNLOAD:" ) DOWNLOAD=$val ;;
+    "SLACKBUILD DOWNLOAD_x86_64:" ) DOWNLOAD_x86_64=$val ;;
+    "SLACKBUILD MD5SUM:" ) MD5SUM=$val ;;
+    "SLACKBUILD MD5SUM_x86_64:" )  MD5SUM_x86_64=$val ;;
+    "SLACKBUILD SHORT DESCRIPTION:" )  SHORT_DESCRIPTION=$val ;;
+    "" ) 
+      echo "Загружаем..."
+      echo "NAME=$NAME"
+      echo "LOCATION=$LOCATION"  
+      echo "FILES=$FILES"
+      echo "VERSION=$VERSION"
+      echo "DOWNLOAD=$DOWNLOAD"
+      echo "DOWNLOAD_x86_64=$DOWNLOAD_x86_64"
+      echo "MD5SUM=$MD5SUM"
+      echo "MD5SUM_x86_64=$MD5SUM_x86_64"
+      echo "SHORT_DESCRIPTION=$SHORT_DESCRIPTION"
+      echo "mkdir -p $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION"
+      mkdir -p $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION
+      cd $SBOPORT_SOURCE/$SBOPORT_RELEASE/$SBOPORT_ARCH/$LOCATION
+      for src in $DOWNLOAD
+      do
+        (wget -T 10 -t 3 -c $src &)
+      done
+      
+      for src in $DOWNLOAD_x86_64
+      do
+        (wget -T 10 -t 3 -c $src &)
+      done
+    ;;
+  esac
 }
 
 is_patch_for_slackbuild_exist() 
@@ -981,20 +953,41 @@ is_patch_for_slackbuild_exist()
   fi
 }
 
+# Выделяет имя пакета. 
+# Отбрасываются три группы разделенные знаками - с хвоста полного имени пакета.
+# Например:
+# $get_pkg_name monodevelop-2.8-x86_64-1_SBo
+# monodevelop
+get_pkg_name()
+{
+  local tmp
+  tmp=${1}
+  for ((i=1; i <= 3 ; i++))
+  do
+    tmp=$(basename $tmp -$(echo $tmp | rev | cut -f 1 -d - | rev) )
+  done
+  echo $tmp
+}
+
 #Выполняет деинсталляцию пакета, если он установлен.
 rm_pkg_if_exist()
 {
-# echo_long_cr
-# echo "File: SW_pkg_functions ; rm_pkg_if_exist()." 
-# show_sbo_variables
+#   echo_long_cr
+#   echo "File: SW_pkg_functions ; rm_pkg_if_exist()." 
+#   show_sbo_variables
+#   echo ${1}
 
-  if [ -e /var/log/packages/${1}*SBo ]
-    then 
-#      echo "pkg_exist /var/log/packages/${1}*SBo"
-      removepkg ${1}
-      echo "${1} Uninstalled" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.UNINSTALL.LOG
-#    else
-#      echo "pkg_not_exist /var/log/packages/${1}*SBo"
-  fi
-# echo_long_cr
+  local rez pkg pkg_name
+  rez=$(cd /var/log/packages/; ls ${1}*SBo)
+
+  for pkg  in $rez
+  do
+    pkg_name=$(get_pkg_name $pkg)
+    if [ $pkg_name = ${1} ]
+    then
+      echo $pkg
+      removepkg $pkg
+      echo "${pkg} Uninstalled" >>/tmp/SBOPORT-${SBOPORT_RELEASE}-${SBOPORT_ARCH}.UNINSTALL.LOG
+    fi 
+  done 
 }
