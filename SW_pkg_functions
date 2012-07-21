@@ -461,7 +461,7 @@ download_sources_and_check_md5sum()
         echo_long_cr
         exit 1
     fi
-
+    url_file_nm=`echo $url_file_nm |  sed 's/%2B/+/g'`
     cp $SBOPOR_SOURCE_DIR/$url_file_nm $SBOPOR_WORK_DIR/$SBOPORT_PRGNAME/
   done
 }
